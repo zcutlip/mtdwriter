@@ -44,8 +44,8 @@
 #include <mtd/mtd-user.h>
 #include "fis.h"
 #include "mtd.h"
-
-#include <libubox/md5.h>
+#include "md5.h"
+//#include <libubox/md5.h>
 
 #define MAX_ARGS 8
 #define JFFS2_DEFAULT_DIR	"" /* directory name without /, empty means root dir */
@@ -325,62 +325,62 @@ out:
 	return ret;
 }
 
-static int
-mtd_verify(const char *mtd, char *file)
-{
-	uint32_t f_md5[4], m_md5[4];
-	struct stat s;
-	md5_ctx_t ctx;
-	int ret = 0;
-	int fd;
-
-	if (quiet < 2)
-		fprintf(stderr, "Verifying %s against %s ...\n", mtd, file);
-
-	if (stat(file, &s) || md5sum(file, f_md5) < 0) {
-		fprintf(stderr, "Failed to hash %s\n", file);
-		return -1;
-	}
-
-	fd = mtd_check_open(mtd);
-	if(fd < 0) {
-		fprintf(stderr, "Could not open mtd device: %s\n", mtd);
-		return -1;
-	}
-
-	md5_begin(&ctx);
-	do {
-		char buf[256];
-		int len = (s.st_size > sizeof(buf)) ? (sizeof(buf)) : (s.st_size);
-		int rlen = read(fd, buf, len);
-
-		if (rlen < 0) {
-			if (errno == EINTR)
-				continue;
-			ret = -1;
-			goto out;
-		}
-		if (!rlen)
-			break;
-		md5_hash(buf, rlen, &ctx);
-		s.st_size -= rlen;
-	} while (s.st_size > 0);
-
-	md5_end(m_md5, &ctx);
-
-	fprintf(stderr, "%08x%08x%08x%08x - %s\n", m_md5[0], m_md5[1], m_md5[2], m_md5[3], mtd);
-	fprintf(stderr, "%08x%08x%08x%08x - %s\n", f_md5[0], f_md5[1], f_md5[2], f_md5[3], file);
-
-	ret = memcmp(f_md5, m_md5, sizeof(m_md5));
-	if (!ret)
-		fprintf(stderr, "Success\n");
-	else
-		fprintf(stderr, "Failed\n");
-
-out:
-	close(fd);
-	return ret;
-}
+// static int
+// mtd_verify(const char *mtd, char *file)
+// {
+//     uint32_t f_md5[4], m_md5[4];
+//     struct stat s;
+//     md5_ctx_t ctx;
+//     int ret = 0;
+//     int fd;
+//
+//     if (quiet < 2)
+//         fprintf(stderr, "Verifying %s against %s ...\n", mtd, file);
+//
+//     if (stat(file, &s) || md5sum(file, f_md5) < 0) {
+//         fprintf(stderr, "Failed to hash %s\n", file);
+//         return -1;
+//     }
+//
+//     fd = mtd_check_open(mtd);
+//     if(fd < 0) {
+//         fprintf(stderr, "Could not open mtd device: %s\n", mtd);
+//         return -1;
+//     }
+//
+//     md5_begin(&ctx);
+//     do {
+//         char buf[256];
+//         int len = (s.st_size > sizeof(buf)) ? (sizeof(buf)) : (s.st_size);
+//         int rlen = read(fd, buf, len);
+//
+//         if (rlen < 0) {
+//             if (errno == EINTR)
+//                 continue;
+//             ret = -1;
+//             goto out;
+//         }
+//         if (!rlen)
+//             break;
+//         md5_hash(buf, rlen, &ctx);
+//         s.st_size -= rlen;
+//     } while (s.st_size > 0);
+//
+//     md5_end(m_md5, &ctx);
+//
+//     fprintf(stderr, "%08x%08x%08x%08x - %s\n", m_md5[0], m_md5[1], m_md5[2], m_md5[3], mtd);
+//     fprintf(stderr, "%08x%08x%08x%08x - %s\n", f_md5[0], f_md5[1], f_md5[2], f_md5[3], file);
+//
+//     ret = memcmp(f_md5, m_md5, sizeof(m_md5));
+//     if (!ret)
+//         fprintf(stderr, "Success\n");
+//     else
+//         fprintf(stderr, "Failed\n");
+//
+// out:
+//     close(fd);
+//     return ret;
+// }
 
 static void
 indicate_writing(const char *mtd)
@@ -868,7 +868,9 @@ int main (int argc, char **argv)
 				mtd_unlock(device);
 			break;
 		case CMD_VERIFY:
-			mtd_verify(device, imagefile);
+			//mtd_verify(device, imagefile);
+            fprintf(stderr,"Verify not implemented.");
+            exit(EXIT_FAILURE);
 			break;
 		case CMD_DUMP:
 			mtd_dump(device, offset, dump_len);
