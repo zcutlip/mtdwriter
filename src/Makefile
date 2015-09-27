@@ -1,6 +1,5 @@
-CC = gcc
+CC ?= gcc
 CFLAGS += -Wall
-LDFLAGS += -lubox
 
 obj = mtd.o jffs2.o crc32.o md5.o
 obj.seama = seama.o md5.o
@@ -15,6 +14,11 @@ ifdef FIS_SUPPORT
   obj += fis.o
 endif
 
+%.o:%.c
+	$(CC) -c $<
+
 mtd: $(obj) $(obj.$(TARGET))
+	$(CC) $(LDFLAGS) $^ -o $@
 clean:
-	rm -f *.o jffs2
+	-rm -f *.o jffs2
+	-rm -f mtd
